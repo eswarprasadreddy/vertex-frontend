@@ -13,7 +13,7 @@ const DARK = { bg:"#09090f", surface:"#0f0f18", card:"#13131e", border:"#1e1e2e"
 const LIGHT = { bg:"#f4f4fb", surface:"#ffffff", card:"#ffffff", border:"#dcdcea", borderH:"#9999cc", accent:"#3b6fe0", accentS:"#e2ebff", text:"#0a0a18", sub:"#50507a", muted:"#b0b0cc", ok:"#10b981", okS:"#e0faf2", bad:"#ef4444", badS:"#fef0f0", warn:"#d97706", warnS:"#fffbea" };
 
 // ── Question Bank (hardcoded fallback) ─────────────────────────────────────
-export const QUESTION_BANK = {
+const QUESTION_BANK = {
   "Sliding Window": [
     { id:-1, title:"Maximum Sum Subarray of Size K", difficulty:"Easy", topic:"Arrays", pattern:"Sliding Window", question:`Title: Maximum Sum Subarray of Size K\nProblem Statement:\nGiven an array of integers and integer K, find the maximum sum of any contiguous subarray of size K.\n\nConstraints:\n• 1 ≤ K ≤ n ≤ 10⁵\n• -10⁴ ≤ nums[i] ≤ 10⁴\n\nExample 1:\nInput: nums = [2,1,5,1,3,2], K = 3\nOutput: 9\nReason: [5,1,3] = 9\n\nExample 2:\nInput: nums = [2,3,4,1,5], K = 2\nOutput: 7\nReason: [3,4] = 7\n\nHint: Maintain a running sum. Add the next element and remove the leftmost element each step.`, testCases:[{input:"nums=[2,1,5,1,3,2], k=3",expected:"9"},{input:"nums=[2,3,4,1,5], k=2",expected:"7"},{input:"nums=[1,1,1,1], k=2",expected:"2"}] },
     { id:-2, title:"Longest Substring Without Repeating Characters", difficulty:"Medium", topic:"Arrays", pattern:"Sliding Window", question:`Title: Longest Substring Without Repeating Characters\nProblem Statement:\nGiven a string s, find the length of the longest substring without repeating characters.\n\nConstraints:\n• 0 ≤ s.length ≤ 5×10⁴\n• s consists of English letters, digits, symbols and spaces\n\nExample 1:\nInput: s = "abcabcbb"\nOutput: 3\nReason: "abc"\n\nExample 2:\nInput: s = "bbbbb"\nOutput: 1\nReason: "b"\n\nHint: Use a HashMap to store the last index of each character. When a repeat is found, move the left pointer.`, testCases:[{input:'s="abcabcbb"',expected:"3"},{input:'s="bbbbb"',expected:"1"},{input:'s="pwwkew"',expected:"3"}] },
@@ -81,7 +81,7 @@ export const QUESTION_BANK = {
 };
 
 // Pattern approach guides
-export const PATTERN_GUIDES = {
+const PATTERN_GUIDES = {
   "Sliding Window": {
     summary: "Maintain a window of elements that satisfies a condition. Expand the right boundary to include more elements, shrink the left when a constraint is violated.",
     when: "Contiguous subarrays/substrings, find max/min window satisfying a condition",
@@ -205,7 +205,7 @@ int solve(int n) {
 };
 
 // Topic → Patterns mapping
-export const TOPICS = [
+const TOPICS = [
   { id:"Arrays", patterns:["Sliding Window","Two Pointers","Binary Search","Prefix Sum"] },
   { id:"Strings", patterns:["Sliding Window","Two Pointers","KMP","Hashing"] },
   { id:"Trees", patterns:["DFS","BFS","Tree DP","Morris Traversal"] },
@@ -217,7 +217,7 @@ export const TOPICS = [
 ];
 
 // Language boilerplate
-export const BOILERPLATE = {
+const BOILERPLATE = {
   Java: `class Solution {\n    public int solve(int[] nums) {\n        // Write your solution here\n        \n        return 0;\n    }\n}`,
   Python: `class Solution:\n    def solve(self, nums: list[int]) -> int:\n        # Write your solution here\n        \n        return 0`,
   "C++": `class Solution {\npublic:\n    int solve(vector<int>& nums) {\n        // Write your solution here\n        \n        return 0;\n    }\n};`,
