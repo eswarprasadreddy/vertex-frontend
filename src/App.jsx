@@ -178,7 +178,9 @@ function SearchModal({ T, onClose, onSelect }) {
 
 function TopicsPage({ T, onTopicClick }) {
   return (
-    <div style={{padding:"48px 40px",maxWidth:1120,margin:"0 auto"}}>
+    <div>
+  <HeroCanvas T={T} dark={dark}/>
+  <div style={{padding:"48px 40px",maxWidth:1120,margin:"0 auto"}}>
       <div style={{marginBottom:44}}><h1 style={{margin:"0 0 8px",fontSize:32,fontWeight:800,color:T.text,letterSpacing:"-0.04em"}}>Topics</h1><p style={{margin:0,fontSize:15,color:T.sub}}>Choose a topic to explore patterns and problems.</p></div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
         {TOPICS.map(t=><TopicCard key={t.id} topic={t} onClick={()=>onTopicClick(t)} T={T}/>)}
