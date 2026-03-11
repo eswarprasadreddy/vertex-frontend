@@ -70,86 +70,6 @@ function Topbar({ topView, setTopView, dark, setDark, T, onSearch }) {
     </div>
   );
 }
-function HeroCanvas({ T, dark }) {
-  const canvasRef = useRef(null);
-  const stateRef = useRef({ scene:0, t:0, trail:[], starfield:[], graphNodes:[], graphEdges:[], lastTime:0 });
-  const [sceneIdx, setSceneIdx] = useState(0);
-  const SCENES = [{ label:"</>", tag:"Code. Pattern. Master." },{ label:"{ }", tag:"Think in Patterns." },{ label:"=>", tag:"Connect the Dots." }];
-
-  useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const S = stateRef.current;
-    S.starfield = Array.from({length:90}, () => ({x:Math.random(),y:Math.random(),r:0.5+Math.random()*1.5,twinkle:Math.random()*Math.PI*2}));
-    S.graphNodes = [{x:0.5,y:0.28},{x:0.28,y:0.55},{x:0.72,y:0.55},{x:0.18,y:0.78},{x:0.42,y:0.82},{x:0.58,y:0.78},{x:0.82,y:0.72}];
-    S.graphEdges = [[0,1],[0,2],[1,2],[1,3],[1,4],[2,5],[2,6],[3,4],[4,5],[5,6]];
-    const DUR = 5000; let raf, sceneStart = performance.now();
-    const draw = (now) => {
-      canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-      const W = canvas.width, H = canvas.height;
-      const elapsed = now - sceneStart, sp = elapsed / DUR;
-      const dt = now - S.lastTime; S.lastTime = now; S.t += dt * 0.001;
-      if (sp >= 1) { S.scene=(S.scene+1)%3; setSceneIdx(S.scene); sceneStart=now; S.trail=[]; raf=requestAnimationFrame(draw); return; }
-      const fa = sp<0.12?sp/0.12:sp>0.85?(1-sp)/0.15:1;
-      ctx.clearRect(0,0,W,H);
-      if (S.scene===0) {
-        const sky=ctx.createLinearGradient(0,0,0,H); sky.addColorStop(0,"#020610"); sky.addColorStop(1,"#0f1820");
-        ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
-        S.starfield.forEach(s=>{const tw=0.4+0.6*Math.sin(S.t*1.5+s.twinkle);ctx.beginPath();ctx.arc(s.x*W,s.y*H*0.7,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(200,220,255,${0.3*tw*fa})`;ctx.fill();});
-        const dm=(pts,fc)=>{ctx.beginPath();ctx.moveTo(0,H);pts.forEach(([px,py])=>ctx.lineTo(px*W,py*H));ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=fc;ctx.fill();};
-        dm([[0,0.72],[0.08,0.52],[0.15,0.42],[0.22,0.5],[0.3,0.32],[0.38,0.44],[0.48,0.28],[0.55,0.40],[0.65,0.22],[0.72,0.36],[0.82,0.30],[0.9,0.42],[1,0.55]],"rgba(15,20,40,0.9)");
-        dm([[0,0.78],[0.05,0.62],[0.12,0.54],[0.2,0.60],[0.28,0.48],[0.36,0.58],[0.45,0.42],[0.52,0.54],[0.6,0.40],[0.68,0.50],[0.78,0.44],[0.88,0.56],[1,0.62]],"rgba(20,28,55,0.95)");
-        dm([[0,0.85],[0.1,0.72],[0.18,0.65],[0.25,0.72],[0.35,0.60],[0.42,0.70],[0.5,0.58],[0.58,0.68],[0.68,0.62],[0.75,0.70],[0.85,0.65],[0.92,0.72],[1,0.70]],"rgba(25,35,65,0.98)");
-        const ap=Math.max(0,(sp-0.05)/0.80);
-        if(ap>0){
-          const bz=(t,a,b,c)=>(1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;
-          const p0=[W*0.35,H*0.72],p1=[W*0.45,H*0.3],p2=[W*0.58,H*-0.15];
-          const ax=bz(ap,p0[0],p1[0],p2[0]),ay=bz(ap,p0[1],p1[1],p2[1]);
-          const axP=bz(Math.max(0,ap-0.02),p0[0],p1[0],p2[0]),ayP=bz(Math.max(0,ap-0.02),p0[1],p1[1],p2[1]);
-          const angle=Math.atan2(ay-ayP,ax-axP);
-          S.trail.push({x:ax,y:ay}); if(S.trail.length>60) S.trail.shift();
-          S.trail.forEach((pt,i)=>{const age=i/S.trail.length;ctx.beginPath();ctx.arc(pt.x,pt.y,3*(1-age)*2,0,Math.PI*2);ctx.globalAlpha=age*0.6*fa;ctx.fillStyle=age>0.6?"#ff9a00":age>0.3?"#ff3300":"#6600ff";ctx.fill();ctx.globalAlpha=1;});
-          const glow=ctx.createRadialGradient(ax,ay,0,ax,ay,30);glow.addColorStop(0,`rgba(255,160,50,${0.5*fa})`);glow.addColorStop(1,"transparent");
-          ctx.beginPath();ctx.arc(ax,ay,30,0,Math.PI*2);ctx.fillStyle=glow;ctx.fill();
-          ctx.save();ctx.translate(ax,ay);ctx.rotate(angle);
-          ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-6,6);ctx.lineTo(-3,0);ctx.lineTo(-6,-6);ctx.closePath();
-          ctx.fillStyle=`rgba(255,200,80,${fa})`;ctx.fill();ctx.restore();
-        }
-      }
-      if (S.scene===1) {
-        const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#04040e");bg.addColorStop(1,"#0a0818");
-        ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-        [[0.25,0.4,80,"#4060ff"],[0.7,0.3,60,"#800080"],[0.5,0.7,50,"#0080ff"]].forEach(([nx,ny,nr,nc])=>{const ng=ctx.createRadialGradient(nx*W,ny*H,0,nx*W,ny*H,nr);ng.addColorStop(0,nc+"33");ng.addColorStop(1,"transparent");ctx.beginPath();ctx.arc(nx*W,ny*H,nr,0,Math.PI*2);ctx.fillStyle=ng;ctx.fill();});
-        S.starfield.forEach(s=>{const tw=0.4+0.6*Math.sin(S.t*2+s.twinkle);ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(180,200,255,${0.5*tw*fa})`;ctx.fill();});
-        const pulse=1+0.04*Math.sin(S.t*2);
-        ctx.save();ctx.font=`bold ${Math.round(72*pulse)}px 'DM Mono',monospace`;ctx.textAlign="center";ctx.textBaseline="middle";
-        ctx.shadowColor="#5b8af5";ctx.shadowBlur=40*fa;ctx.fillStyle=`rgba(100,180,255,${0.85*fa})`;ctx.fillText("< / >",W/2,H/2);ctx.shadowBlur=0;ctx.restore();
-      }
-      if (S.scene===2) {
-        const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,"#030508");bg.addColorStop(1,"#080e18");
-        ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-        ctx.strokeStyle="rgba(79,142,247,0.04)";ctx.lineWidth=1;
-        for(let gx=0;gx<W;gx+=32){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
-        for(let gy=0;gy<H;gy+=32){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
-        const nR=Math.min(sp/0.6,1),eR=Math.max(0,(sp-0.3)/0.5);
-        S.graphEdges.forEach(([a,b],i)=>{if(!eR)return;const eP=Math.min(eR*S.graphEdges.length-i,1);if(eP<=0)return;const n1=S.graphNodes[a],n2=S.graphNodes[b];const ex=n1.x*W+(n2.x-n1.x)*W*eP,ey=n1.y*H+(n2.y-n1.y)*H*eP;const eg=ctx.createLinearGradient(n1.x*W,n1.y*H,n2.x*W,n2.y*H);eg.addColorStop(0,`rgba(79,142,247,${0.5*fa})`);eg.addColorStop(1,`rgba(79,142,247,${0.2*fa})`);ctx.beginPath();ctx.moveTo(n1.x*W,n1.y*H);ctx.lineTo(ex,ey);ctx.strokeStyle=eg;ctx.lineWidth=1.5;ctx.stroke();});
-        S.graphNodes.forEach((node,i)=>{const nP=Math.min(nR*S.graphNodes.length-i,1);if(nP<=0)return;const nx=node.x*W,ny=node.y*H;const gr=ctx.createRadialGradient(nx,ny,0,nx,ny,20);gr.addColorStop(0,`rgba(79,142,247,${0.3*nP*fa})`);gr.addColorStop(1,"transparent");ctx.beginPath();ctx.arc(nx,ny,20,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();ctx.beginPath();ctx.arc(nx,ny,7*nP,0,Math.PI*2);ctx.fillStyle=`rgba(79,142,247,${0.9*nP*fa})`;ctx.fill();ctx.beginPath();ctx.arc(nx,ny,4*nP,0,Math.PI*2);ctx.fillStyle=`rgba(200,220,255,${0.9*nP*fa})`;ctx.fill();});
-      }
-      raf = requestAnimationFrame(draw);
-    };
-    raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
-  }, [dark]);
-
-  const SCENES_DATA = [{ label:"</>", tag:"Code. Pattern. Master." },{ label:"{ }", tag:"Think in Patterns." },{ label:"=>", tag:"Connect the Dots." }];
-  return (
-    <div style={{position:"relative",width:"100%",height:300,overflow:"hidden",background:"#07070a",flexShrink:0}}>
-      <canvas ref={canvasRef} style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
-      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,pointerEvents:"none"}}>
-        <div style={{fontSize:48,fontWeight:900,fontFamily:"'DM Mono',monospace",color:"rgba(200,220,255,0.9)",letterSpacing:"-0.04em",filter:"drop-shadow(0 0 20px rgba(100,150,255,0.5))",lineHeight:1}}>{SCENES_DATA[sceneIdx].label}</div>
-        <div style={{fontSize:17,fontWeight:700,color:"rgba(200,220,255,0.85)",fontFamily:"'Syne',sans-serif"}}>{SCENES_DATA[sceneIdx].tag}</div>
-        <p style={{fontSize:13,color:"rgba(150,170,210,0.7)",textAlign:"center",maxWidth:460,lineHeight:1.7,margin:0}}>AI-powered DSA practice. Learn patterns, solve real problems, get code review.</p>
-        <div style={{display:"flex",gap:6,marginTop:4}}>{SCENES_DATA.map((_,i)=><div key={i} style={{width:i===sceneIdx?20:6,height:6,borderRadius:3,background:i===sceneIdx?"rgba(100,1
 
 function SearchModal({ T, onClose, onSelect }) {
   const [q,setQ]=useState("");
@@ -176,14 +96,97 @@ function SearchModal({ T, onClose, onSelect }) {
   );
 }
 
-function TopicsPage({ T, onTopicClick }) {
+function HeroCanvas({ dark }) {
+  const canvasRef=useRef(null);
+  const stateRef=useRef({scene:0,t:0,trail:[],starfield:[],graphNodes:[],graphEdges:[],lastTime:0});
+  const [sceneIdx,setSceneIdx]=useState(0);
+  useEffect(()=>{
+    const canvas=canvasRef.current; if(!canvas) return;
+    const ctx=canvas.getContext("2d");
+    const S=stateRef.current;
+    S.starfield=Array.from({length:90},()=>({x:Math.random(),y:Math.random(),r:0.5+Math.random()*1.5,twinkle:Math.random()*Math.PI*2}));
+    S.graphNodes=[{x:0.5,y:0.28},{x:0.28,y:0.55},{x:0.72,y:0.55},{x:0.18,y:0.78},{x:0.42,y:0.82},{x:0.58,y:0.78},{x:0.82,y:0.72}];
+    S.graphEdges=[[0,1],[0,2],[1,2],[1,3],[1,4],[2,5],[2,6],[3,4],[4,5],[5,6]];
+    const DUR=5000; let raf, sceneStart=performance.now();
+    const draw=(now)=>{
+      canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
+      const W=canvas.width,H=canvas.height;
+      const elapsed=now-sceneStart,sp=elapsed/DUR;
+      const dt=now-S.lastTime; S.lastTime=now; S.t+=dt*0.001;
+      if(sp>=1){S.scene=(S.scene+1)%3;setSceneIdx(S.scene);sceneStart=now;S.trail=[];raf=requestAnimationFrame(draw);return;}
+      const fa=sp<0.12?sp/0.12:sp>0.85?(1-sp)/0.15:1;
+      ctx.clearRect(0,0,W,H);
+      if(S.scene===0){
+        const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,"#020610");sky.addColorStop(1,"#0f1820");
+        ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+        S.starfield.forEach(s=>{const tw=0.4+0.6*Math.sin(S.t*1.5+s.twinkle);ctx.beginPath();ctx.arc(s.x*W,s.y*H*0.7,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(200,220,255,${0.3*tw*fa})`;ctx.fill();});
+        const dm=(pts,fc)=>{ctx.beginPath();ctx.moveTo(0,H);pts.forEach(([px,py])=>ctx.lineTo(px*W,py*H));ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=fc;ctx.fill();};
+        dm([[0,0.72],[0.08,0.52],[0.15,0.42],[0.22,0.5],[0.3,0.32],[0.38,0.44],[0.48,0.28],[0.55,0.40],[0.65,0.22],[0.72,0.36],[0.82,0.30],[0.9,0.42],[1,0.55]],"rgba(15,20,40,0.9)");
+        dm([[0,0.78],[0.05,0.62],[0.12,0.54],[0.2,0.60],[0.28,0.48],[0.36,0.58],[0.45,0.42],[0.52,0.54],[0.6,0.40],[0.68,0.50],[0.78,0.44],[0.88,0.56],[1,0.62]],"rgba(20,28,55,0.95)");
+        dm([[0,0.85],[0.1,0.72],[0.18,0.65],[0.25,0.72],[0.35,0.60],[0.42,0.70],[0.5,0.58],[0.58,0.68],[0.68,0.62],[0.75,0.70],[0.85,0.65],[0.92,0.72],[1,0.70]],"rgba(25,35,65,0.98)");
+        const ap=Math.max(0,(sp-0.05)/0.80);
+        if(ap>0){
+          const bz=(t,a,b,c)=>(1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;
+          const p0=[W*0.35,H*0.72],p1=[W*0.45,H*0.3],p2=[W*0.58,H*-0.15];
+          const ax=bz(ap,p0[0],p1[0],p2[0]),ay=bz(ap,p0[1],p1[1],p2[1]);
+          const axP=bz(Math.max(0,ap-0.02),p0[0],p1[0],p2[0]),ayP=bz(Math.max(0,ap-0.02),p0[1],p1[1],p2[1]);
+          const angle=Math.atan2(ay-ayP,ax-axP);
+          S.trail.push({x:ax,y:ay}); if(S.trail.length>60) S.trail.shift();
+          S.trail.forEach((pt,i)=>{const age=i/S.trail.length;ctx.beginPath();ctx.arc(pt.x,pt.y,3*(1-age)*2,0,Math.PI*2);ctx.globalAlpha=age*0.6*fa;ctx.fillStyle=age>0.6?"#ff9a00":age>0.3?"#ff3300":"#6600ff";ctx.fill();ctx.globalAlpha=1;});
+          const glow=ctx.createRadialGradient(ax,ay,0,ax,ay,30);glow.addColorStop(0,`rgba(255,160,50,${0.5*fa})`);glow.addColorStop(1,"transparent");
+          ctx.beginPath();ctx.arc(ax,ay,30,0,Math.PI*2);ctx.fillStyle=glow;ctx.fill();
+          ctx.save();ctx.translate(ax,ay);ctx.rotate(angle);
+          ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-6,6);ctx.lineTo(-3,0);ctx.lineTo(-6,-6);ctx.closePath();
+          ctx.fillStyle=`rgba(255,200,80,${fa})`;ctx.fill();ctx.restore();
+        }
+      }
+      if(S.scene===1){
+        const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#04040e");bg.addColorStop(1,"#0a0818");
+        ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+        [[0.25,0.4,80,"#4060ff"],[0.7,0.3,60,"#800080"],[0.5,0.7,50,"#0080ff"]].forEach(([nx,ny,nr,nc])=>{const ng=ctx.createRadialGradient(nx*W,ny*H,0,nx*W,ny*H,nr);ng.addColorStop(0,nc+"33");ng.addColorStop(1,"transparent");ctx.beginPath();ctx.arc(nx*W,ny*H,nr,0,Math.PI*2);ctx.fillStyle=ng;ctx.fill();});
+        S.starfield.forEach(s=>{const tw=0.4+0.6*Math.sin(S.t*2+s.twinkle);ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(180,200,255,${0.5*tw*fa})`;ctx.fill();});
+        const pulse=1+0.04*Math.sin(S.t*2);
+        ctx.save();ctx.font=`bold ${Math.round(72*pulse)}px 'DM Mono',monospace`;ctx.textAlign="center";ctx.textBaseline="middle";
+        ctx.shadowColor="#5b8af5";ctx.shadowBlur=40*fa;ctx.fillStyle=`rgba(100,180,255,${0.85*fa})`;ctx.fillText("< / >",W/2,H/2);ctx.shadowBlur=0;ctx.restore();
+      }
+      if(S.scene===2){
+        const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,"#030508");bg.addColorStop(1,"#080e18");
+        ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+        ctx.strokeStyle="rgba(79,142,247,0.04)";ctx.lineWidth=1;
+        for(let gx=0;gx<W;gx+=32){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+        for(let gy=0;gy<H;gy+=32){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+        const nR=Math.min(sp/0.6,1),eR=Math.max(0,(sp-0.3)/0.5);
+        S.graphEdges.forEach(([a,b],i)=>{if(!eR)return;const eP=Math.min(eR*S.graphEdges.length-i,1);if(eP<=0)return;const n1=S.graphNodes[a],n2=S.graphNodes[b];const ex=n1.x*W+(n2.x-n1.x)*W*eP,ey=n1.y*H+(n2.y-n1.y)*H*eP;const eg=ctx.createLinearGradient(n1.x*W,n1.y*H,n2.x*W,n2.y*H);eg.addColorStop(0,`rgba(79,142,247,${0.5*fa})`);eg.addColorStop(1,`rgba(79,142,247,${0.2*fa})`);ctx.beginPath();ctx.moveTo(n1.x*W,n1.y*H);ctx.lineTo(ex,ey);ctx.strokeStyle=eg;ctx.lineWidth=1.5;ctx.stroke();});
+        S.graphNodes.forEach((node,i)=>{const nP=Math.min(nR*S.graphNodes.length-i,1);if(nP<=0)return;const nx=node.x*W,ny=node.y*H;const gr=ctx.createRadialGradient(nx,ny,0,nx,ny,20);gr.addColorStop(0,`rgba(79,142,247,${0.3*nP*fa})`);gr.addColorStop(1,"transparent");ctx.beginPath();ctx.arc(nx,ny,20,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();ctx.beginPath();ctx.arc(nx,ny,7*nP,0,Math.PI*2);ctx.fillStyle=`rgba(79,142,247,${0.9*nP*fa})`;ctx.fill();ctx.beginPath();ctx.arc(nx,ny,4*nP,0,Math.PI*2);ctx.fillStyle=`rgba(200,220,255,${0.9*nP*fa})`;ctx.fill();});
+      }
+      raf=requestAnimationFrame(draw);
+    };
+    raf=requestAnimationFrame(draw);
+    return()=>cancelAnimationFrame(raf);
+  },[dark]);
+  const SCENES=[{label:"</>",tag:"Code. Pattern. Master."},{label:"{ }",tag:"Think in Patterns."},{label:"=>",tag:"Connect the Dots."}];
+  return (
+    <div style={{position:"relative",width:"100%",height:300,overflow:"hidden",background:"#07070a",flexShrink:0}}>
+      <canvas ref={canvasRef} style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
+      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,pointerEvents:"none"}}>
+        <div style={{fontSize:52,fontWeight:900,fontFamily:"'DM Mono',monospace",color:"rgba(200,220,255,0.92)",letterSpacing:"-0.04em",filter:"drop-shadow(0 0 24px rgba(100,150,255,0.6))",lineHeight:1,transition:"opacity 0.4s"}}>{SCENES[sceneIdx].label}</div>
+        <div style={{fontSize:17,fontWeight:700,color:"rgba(200,220,255,0.85)",fontFamily:"'Syne',sans-serif",transition:"opacity 0.4s"}}>{SCENES[sceneIdx].tag}</div>
+        <p style={{fontSize:13,color:"rgba(150,170,210,0.7)",textAlign:"center",maxWidth:460,lineHeight:1.7,margin:0}}>AI-powered DSA practice. Learn patterns, solve real problems, get instant code review.</p>
+        <div style={{display:"flex",gap:6,marginTop:4}}>{SCENES.map((_,i)=><div key={i} style={{width:i===sceneIdx?20:6,height:6,borderRadius:3,background:i===sceneIdx?"rgba(100,160,255,0.9)":"rgba(100,120,200,0.3)",transition:"all 0.4s"}}/>)}</div>
+      </div>
+    </div>
+  );
+}
+
+function TopicsPage({ T, dark, onTopicClick }) {
   return (
     <div>
-  <HeroCanvas T={T} dark={dark}/>
-  <div style={{padding:"48px 40px",maxWidth:1120,margin:"0 auto"}}>
-      <div style={{marginBottom:44}}><h1 style={{margin:"0 0 8px",fontSize:32,fontWeight:800,color:T.text,letterSpacing:"-0.04em"}}>Topics</h1><p style={{margin:0,fontSize:15,color:T.sub}}>Choose a topic to explore patterns and problems.</p></div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
-        {TOPICS.map(t=><TopicCard key={t.id} topic={t} onClick={()=>onTopicClick(t)} T={T}/>)}
+      <HeroCanvas dark={dark}/>
+      <div style={{padding:"40px 40px 48px",maxWidth:1120,margin:"0 auto"}}>
+        <div style={{marginBottom:36}}><h1 style={{margin:"0 0 8px",fontSize:28,fontWeight:800,color:T.text,letterSpacing:"-0.04em"}}>Topics</h1><p style={{margin:0,fontSize:14,color:T.sub}}>Choose a topic to explore patterns and problems.</p></div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
+          {TOPICS.map(t=><TopicCard key={t.id} topic={t} onClick={()=>onTopicClick(t)} T={T}/>)}
+        </div>
       </div>
     </div>
   );
@@ -529,7 +532,7 @@ export default function App() {
       {cur.view!=="editor"&&<Topbar topView={topView} setTopView={v=>{if(v==="quiz")push({view:"quiz"});else goTo("topics");}} dark={dark} setDark={setDark} T={T} onSearch={()=>setSearchOpen(true)}/>}
       {searchOpen&&<SearchModal T={T} onClose={()=>setSearchOpen(false)} onSelect={q=>{push({view:"editor",problem:q});setSearchOpen(false);}}/>}
       <div style={{flex:1,overflow:cur.view==="editor"||cur.view==="pattern"?"hidden":"auto"}}>
-        {cur.view==="topics"&&<TopicsPage T={T} onTopicClick={t=>push({view:"patterns",topic:t})}/>}
+        {cur.view==="topics"&&<TopicsPage T={T} dark={dark} onTopicClick={t=>push({view:"patterns",topic:t})}/>}
         {cur.view==="patterns"&&<PatternsPage topic={cur.topic} T={T} onPatternClick={p=>push({view:"pattern",pattern:p,topic:cur.topic.id})} onBack={pop}/>}
         {cur.view==="pattern"&&<PatternPage pattern={cur.pattern} topic={cur.topic} T={T} onSelectQuestion={q=>push({view:"editor",problem:q})} onBack={pop}/>}
         {cur.view==="editor"&&<CodeEditor problem={cur.problem} T={T} onBack={pop}/>}
